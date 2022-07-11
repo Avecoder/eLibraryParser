@@ -1,27 +1,36 @@
-import elibraryParser from '../elibrary-parser.js'
+import { getArticles } from '../services/parser.js'
+import { uploadAllPosts, getAllPosts } from '../services/postService.js'
+import { getUserId, getAllUsersId } from '../services/userService.js'
+import ApiError from '../exception/apiError.js'
 
 
-export const getPublic = (req, res, next) => {
-  const { authorid } = req.query
+export const uploadPosts = async () => {
+  try {
+    const users = await getAllUsersId()
 
-  elibraryParser()
-    .getArticles(authorid)
-    .then(data => {
-      res.status(200).json(data)
-    })
-    .catch((err) => res.status(404).json({message: 'Нет постов'}))
+    for(let user of users) {
+      const data = await getArticles(user.eLibraryId)
 
+      await uploadAllPosts(data, user.id)
+    }
+
+    console.log(`Posts updated - ${new Date()}`)
+  } catch (err) {
+    console.log(err)
+    throw ApiError.BadGateway('Ошибка БД', err)
+  }
 }
 
+export const getAllPublications = async (req, res, next) => {
+  try {
+    const { authorid, limit } = req.query
 
-export const getAuthor = (req, res, next) => {
-  const { authorid } = req.query
+    const userId = await getUserId(authorid)
+    const posts = await getAllPosts(userId, limit)
 
-  elibraryParser()
-    .getAuthor(authorid)
-    .then(data => {
-      res.status(200).json(data)
-    })
-    .catch((err) => res.status(404).json({message: 'Автор не найден'}))
-
+    return res.status(200).json({count: posts.length, posts})
+  } catch (err) {
+    console.log(err)
+    next(err)
+  }
 }
