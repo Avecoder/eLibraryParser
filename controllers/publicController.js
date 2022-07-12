@@ -1,6 +1,6 @@
 import { getArticles } from '../services/parser.js'
 import { uploadAllPosts, getAllPosts } from '../services/postService.js'
-import { getUserId, getAllUsersId } from '../services/userService.js'
+import { getUserByName, getAllUsersId } from '../services/userService.js'
 import ApiError from '../exception/apiError.js'
 
 
@@ -23,10 +23,10 @@ export const uploadPosts = async () => {
 
 export const getAllPublications = async (req, res, next) => {
   try {
-    const { authorid, limit } = req.query
+    const { lastname, limit } = req.query
 
-    const userId = await getUserId(authorid)
-    const posts = await getAllPosts(userId, limit)
+    const { _id } = await getUserByName(lastname)
+    const posts = await getAllPosts(_id, limit)
 
     return res.status(200).json({count: posts.length, posts})
   } catch (err) {

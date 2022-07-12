@@ -34,4 +34,4 @@ const start = async () => {
 }
 
 start()
-databaseUpdateTimer('0 12 * * mon')
+databaseUpdateTimer('0 11 * * mon')
